@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商品仿真数据源 · 控制台</title>
+<style>
+  :root{
+    --bg:#080D18; --panel:#0F1729; --panel-2:#141F36; --line:rgba(255,255,255,.08);
+    --text:#E8EFFA; --text-2:#9DB0CC; --text-3:#64748B;
+    --cyan:#38BDF8; --green:#22C55E; --amber:#F59E0B; --red:#EF4444; --violet:#A78BFA;
+    --mono:'JetBrains Mono','Cascadia Code',Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:
+      radial-gradient(900px 500px at 12% -8%, rgba(56,189,248,.10), transparent 60%),
+      radial-gradient(800px 460px at 92% 0%, rgba(167,139,250,.09), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    font-size:13px; min-height:100vh; padding:22px 26px 40px;
+  }
+  .wrap{max-width:1460px;margin:0 auto}
+
+  /* ---------- 头部 ---------- */
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .logo{
+    width:40px;height:40px;border-radius:11px;flex:none;
+    background:linear-gradient(145deg,#1E3A8A,#0EA5E9);
+    display:grid;place-items:center;font-size:19px;
+    box-shadow:0 6px 20px rgba(14,165,233,.28);
+  }
+  h1{font-size:17px;font-weight:650;letter-spacing:.2px}
+  .sub{font-size:11.5px;color:var(--text-3);margin-top:3px;font-family:var(--mono)}
+  .pulse{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);
+    background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.28);
+    padding:5px 11px;border-radius:20px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.9s infinite}
+  @keyframes pulse{70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+  .spacer{flex:1}
+
+  /* ---------- 卡片 ---------- */
+  .card{background:linear-gradient(180deg,var(--panel-2),var(--panel));border:1px solid var(--line);
+    border-radius:14px;padding:16px 18px;box-shadow:0 10px 30px rgba(0,0,0,.24)}
+  .grid-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+  .kpi .label{font-size:11px;color:var(--text-3);letter-spacing:.4px;margin-bottom:7px}
+  .kpi .val{font-size:23px;font-weight:680;font-family:var(--mono);letter-spacing:-.5px;line-height:1.1}
+  .kpi .val small{font-size:11px;color:var(--text-3);font-weight:400;margin-left:3px}
+
+  /* ---------- 控制条 ---------- */
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  label.f{font-size:11.5px;color:var(--text-3);display:flex;align-items:center;gap:6px}
+  select,input[type=number]{
+    background:#0B1220;border:1px solid var(--line);color:var(--text);
+    padding:7px 10px;border-radius:8px;font-size:12.5px;font-family:inherit;outline:none;cursor:pointer}
+  select:focus,input:focus{border-color:rgba(56,189,248,.5)}
+  button{
+    background:linear-gradient(145deg,#0EA5E9,#0284C7);border:none;color:#fff;
+    padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:.16s;box-shadow:0 4px 14px rgba(14,165,233,.26)}
+  button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--text-2);box-shadow:none}
+  button.ghost:hover{border-color:rgba(56,189,248,.45);color:var(--cyan)}
+  button.ghost.on{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.4);color:#4ADE80}
+
+  /* ---------- 表格 ---------- */
+  .tbl-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:12.3px;min-width:940px}
+  thead th{
+    text-align:left;padding:11px 13px;background:rgba(255,255,255,.035);
+    color:var(--text-3);font-weight:600;font-size:11px;letter-spacing:.5px;
+    border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+  tbody td{padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:rgba(56,189,248,.045)}
+  .id{font-family:var(--mono);font-size:11.5px;color:var(--cyan);white-space:nowrap}
+  .title{max-width:330px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+  .cat{font-size:11px;color:var(--text-2);background:rgba(255,255,255,.05);
+    padding:2.5px 8px;border-radius:5px;white-space:nowrap}
+  .badge{font-size:10.5px;padding:2.5px 8px;border-radius:5px;font-weight:600;white-space:nowrap}
+  .b-out{background:rgba(239,68,68,.15);color:#F87171}
+  .b-low{background:rgba(245,158,11,.15);color:#FBBF24}
+  .b-healthy{background:rgba(34,197,94,.13);color:#4ADE80}
+  .b-overstock{background:rgba(167,139,250,.15);color:#C4B5FD}
+  .bar-mini{height:4px;width:74px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}
+  .bar-mini i{display:block;height:100%;border-radius:3px}
+
+  /* ---------- 端点说明 ---------- */
+  .ends{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin-top:14px}
+  .ep{display:flex;gap:10px;align-items:center;padding:9px 12px;border:1px solid var(--line);
+    border-radius:9px;background:rgba(255,255,255,.02);font-size:11.5px}
+  .m{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex:none}
+  .m.get{background:rgba(34,197,94,.16);color:#4ADE80}
+  .m.post{background:rgba(245,158,11,.16);color:#FBBF24}
+  .ep code{font-family:var(--mono);color:var(--text-2);font-size:11.5px}
+  .ep span{color:var(--text-3);font-size:11px;margin-left:auto;white-space:nowrap}
+
+  .sec-title{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+    margin:22px 0 11px;color:var(--text)}
+  .sec-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--cyan)}
+  .hint{font-size:11px;color:var(--text-3);font-weight:400;margin-left:auto}
+  #json{font-family:var(--mono);font-size:11.5px;line-height:1.7;color:#93C5FD;
+    background:#070C16;border:1px solid var(--line);border-radius:10px;padding:14px;
+    max-height:300px;overflow:auto;white-space:pre;display:none}
+
+  /* ---------- 单商品详情 ---------- */
+  .id{cursor:pointer}
+  .id:hover{text-decoration:underline}
+  #detail{display:none;margin-bottom:14px}
+  #detail .dhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  #detail .dhead .t{font-size:14px;font-weight:650}
+  #detail .dhead .x{margin-left:auto;background:transparent;border:1px solid var(--line);
+    color:var(--text-3);padding:4px 11px;border-radius:7px;font-size:11.5px;box-shadow:none}
+  #detail .dhead .x:hover{color:var(--cyan);border-color:rgba(56,189,248,.45)}
+  #detail .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:9px;margin-top:12px}
+  #detail .dcell{background:rgba(255,255,255,.03);border:1px solid var(--line);
+    border-radius:9px;padding:9px 11px}
+  #detail .dcell span{display:block;font-size:10.5px;color:var(--text-3);margin-bottom:4px}
+  #detail .dcell b{font-family:var(--mono);font-size:14.5px;font-weight:650}
+  .spark{display:flex;align-items:flex-end;gap:2px;height:46px;margin-top:11px}
+  .spark i{flex:1;border-radius:2px 2px 0 0;min-height:2px;
+    background:linear-gradient(180deg,rgba(56,189,248,.92),rgba(56,189,248,.22))}
+  .spark-axis{display:flex;justify-content:space-between;font-size:10px;
+    color:var(--text-3);margin-top:5px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">◈</div>
+    <div>
+      <h1>商品仿真数据源</h1>
+      <div class="sub" id="svc">mock-product-data-service v1.0.0 · 127.0.0.1:4100</div>
+    </div>
+    <div class="pulse"><span class="dot"></span><span id="status">数据流运行中</span></div>
+    <div class="spacer"></div>
+    <div class="sub" id="clock">—</div>
+  </header>
+
+  <div class="grid-kpi">
+    <div class="card kpi"><div class="label">商品池规模</div><div class="val" id="k-pool">—</div></div>
+    <div class="card kpi"><div class="label">已服务数据量</div><div class="val" id="k-served">—</div></div>
+    <div class="card kpi"><div class="label">仿真时间</div><div class="val" id="k-days">—</div></div>
+    <div class="card kpi"><div class="label">断货 / 紧缺</div><div class="val" id="k-risk">—</div></div>
+    <div class="card kpi"><div class="label">运行时长</div><div class="val" id="k-up">—</div></div>
+  </div>
+
+  <div class="bar">
+    <label class="f">模式
+      <select id="mode">
+        <option value="stable">stable · 固定切片（观察同一批商品演进）</option>
+        <option value="pool">pool · 随机抽取</option>
+        <option value="chaos">chaos · 每次全新商品</option>
+      </select>
+    </label>
+    <label class="f">条数 <input type="number" id="count" value="12" min="1" max="200" style="width:70px"></label>
+    <label class="f">品类 <select id="cat"><option value="">全部</option></select></label>
+    <button id="gen">生成一批</button>
+    <button class="ghost on" id="auto">自动刷新 开</button>
+    <button class="ghost" id="jsonBtn">查看原始 JSON</button>
+    <button class="ghost" id="reset">重置商品池</button>
+    <div class="spacer"></div>
+    <div class="sub" id="meta">—</div>
+  </div>
+
+  <div class="card" id="detail"></div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>item_id</th><th>商品标题</th><th>品类</th>
+          <th style="text-align:right">库存</th><th style="text-align:right">月销量</th>
+          <th style="text-align:right">价格</th><th style="text-align:right">补货阈值</th>
+          <th>库存水位</th><th>状态</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="9" style="text-align:center;padding:34px;color:var(--text-3)">加载中…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre id="json"></pre>
+
+  <div class="sec-title">对外接口<span class="hint">全部支持跨域，可直接被主系统或其他服务调用</span></div>
+  <div class="ends">
+    <div class="ep"><span class="m get">GET</span><code>/api/products?count=10</code><span>生成随机商品数据</span></div>
+    <div class="ep"><span class="m get">GET</span><code>/api/products/MOCK-XXXXXX</code><span>单商品查询（点表格 ID 试）</span></div>
+    <div class="ep"><span class="m get">GET</span><code>/api/products/stream</code><span>SSE 持续推送</span></div>
+    <div class="ep"><span class="m get">GET</span><code>/api/health</code><span>健康检查</span></div>
+    <div class="ep"><span class="m get">GET</span><code>/api/schema</code><span>字段契约</span></div>
+    <div class="ep"><span class="m get">GET</span><code>/api/stats</code><span>生成统计</span></div>
+    <div class="ep"><span class="m post">POST</span><code>/api/reset</code><span>重置商品池</span></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let auto = true;
+let timer = null;
+let detailId = null;   // 当前展开的单商品详情（null 表示收起）
+
+const STATUS_TEXT = { out:'断货', low:'紧缺', healthy:'健康', overstock:'积压' };
+const STATUS_COLOR = { out:'#EF4444', low:'#F59E0B', healthy:'#22C55E', overstock:'#A78BFA' };
+
+function fmt(n){ return Number(n).toLocaleString('zh-CN'); }
+
+function waterBar(stock, min, status){
+  // 水位 = 库存 / (阈值 * 2.5)，超过 100% 按满格显示
+  const pct = Math.max(2, Math.min(100, (stock / Math.max(min * 2.5, 1)) * 100));
+  // 颜色跟随库存状态：积压用紫色，避免和健康库存一样显示为绿色造成误读
+  const color = STATUS_COLOR[status] || '#22C55E';
+  return `<span class="bar-mini"><i style="width:${pct}%;background:${color}"></i></span>`;
+}
+
+async function load(){
+  const mode = $('mode').value;
+  const count = $('count').value || 12;
+  const cat = $('cat').value;
+  const qs = new URLSearchParams({ mode, count });
+  if (cat) qs.set('category', cat);
+
+  try{
+    const res = await fetch('api/products?' + qs.toString());
+    const data = await res.json();
+    const items = data.items || [];
+
+    $('rows').innerHTML = items.map(it => `
+      <tr>
+        <td class="id" data-id="${it.item_id}" title="点击查看单商品详情">${it.item_id}</td>
+        <td class="title" title="${it.title.replace(/"/g,'&quot;')}">${it.title}</td>
+        <td><span class="cat">${it.category}</span></td>
+        <td class="num">${fmt(it.stock)}</td>
+        <td class="num">${fmt(it.sales)}</td>
+        <td class="num">¥${Number(it.price).toFixed(1)}</td>
+        <td class="num">${fmt(it.min_stock)}</td>
+        <td>${waterBar(it.stock, it.min_stock, it.stock_status)}</td>
+        <td><span class="badge b-${it.stock_status}">${STATUS_TEXT[it.stock_status] || it.stock_status}</span></td>
+      </tr>`).join('');
+
+    // 详情面板跟随主表一起刷新，否则展示的会是上一次请求时的旧库存
+    if (detailId) loadDetail(detailId);
+
+    const t = new Date(data.meta.generated_at);
+    $('meta').textContent = `${data.meta.request_id} · ${items.length} 条 · ${data.meta.elapsed_ms}ms · ${t.toLocaleTimeString('zh-CN')}`;
+
+    if ($('json').style.display === 'block') $('json').textContent = JSON.stringify(data, null, 2);
+    $('status').textContent = '数据流运行中';
+  }catch(err){
+    $('status').textContent = '连接失败';
+    $('meta').textContent = err.message;
+  }
+}
+
+/* ---------------- 单商品详情（演示 GET /api/products/:item_id） ---------------- */
+
+function detailShell(inner){
+  return `<div class="dhead">
+      <div class="t">${detailId}</div>
+      <span class="badge" style="background:rgba(56,189,248,.13);color:var(--cyan)">单商品查询</span>
+      <button class="x" data-close>收起</button>
+    </div>${inner}`;
+}
+
+async function loadDetail(id){
+  const box = $('detail');
+  box.style.display = 'block';
+  detailId = id;
+  try{
+    const d = await fetch('api/products/' + encodeURIComponent(id)).then(r=>r.json());
+    if (!d.ok){
+      box.innerHTML = detailShell(
+        `<div style="margin-top:10px;font-size:12px;color:var(--red)">${d.error}</div>
+         <div style="margin-top:6px;font-size:11.5px;color:var(--text-3)">${d.hint || ''}</div>`
+      );
+      return;
+    }
+    const it = d.item;
+    const cells = [
+      ['库存', fmt(it.stock)],
+      ['月销量', fmt(it.sales)],
+      ['价格', '¥' + Number(it.price).toFixed(1)],
+      ['补货阈值', fmt(it.min_stock)],
+      ['可售天数', it.cover_days == null ? '∞' : it.cover_days + ' 天'],
+      ['日均销量', it.avg_daily],
+      ['需求趋势', '×' + it.trend],
+      ['状态', `<span class="badge b-${it.stock_status}">${STATUS_TEXT[it.stock_status] || it.stock_status}</span>`],
+      ['促销中', it.promo_active ? '是' : '否'],
+      ['仿真时长', it.simulated_hours + ' h'],
+    ];
+    const max = Math.max(1, ...it.daily_sales);
+    const bars = it.daily_sales.map(v =>
+      `<i style="height:${Math.max(2, (v / max) * 100)}%" title="${v} 件"></i>`).join('');
+
+    box.innerHTML = detailShell(`
+      <div style="margin-top:5px;font-size:12.5px;color:var(--text-2)">${it.title}
+        <span class="cat" style="margin-left:8px">${it.category}</span>
+        <span style="font-size:11px;color:var(--text-3);margin-left:8px">场景 ${it.scenario}</span>
+      </div>
+      <div class="dgrid">${cells.map(([k, v]) =>
+        `<div class="dcell"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--text-3)">近 30 日逐日销量（
+        <code style="font-family:var(--mono);color:var(--cyan)">daily_sales</code> 字段，供接入方核对预测输入）
+      </div>
+      <div class="spark">${bars}</div>
+      <div class="spark-axis"><span>30 天前</span><span>峰值 ${max} 件</span><span>今天</span></div>
+    `);
+  }catch(err){
+    box.innerHTML = detailShell(`<div style="margin-top:10px;font-size:12px;color:var(--red)">${err.message}</div>`);
+  }
+}
+
+function hideDetail(){
+  detailId = null;
+  $('detail').style.display = 'none';
+  $('detail').innerHTML = '';
+}
+
+$('rows').addEventListener('click', (e) => {
+  const cell = e.target.closest('.id');
+  if (!cell) return;
+  const id = cell.dataset.id;
+  if (detailId === id) hideDetail();
+  else { detailId = id; loadDetail(id); }
+});
+
+$('detail').addEventListener('click', (e) => {
+  if (e.target.closest('[data-close]')) hideDetail();
+});
+
+async function loadStats(){
+  try{
+    const [s, h] = await Promise.all([
+      fetch('api/stats').then(r=>r.json()),
+      fetch('api/health').then(r=>r.json()),
+    ]);
+    $('k-pool').innerHTML = fmt(s.stats.pool_size) + '<small>个</small>';
+    $('k-served').innerHTML = fmt(s.stats.items_served) + '<small>条</small>';
+    $('k-days').innerHTML = s.stats.simulated_days + '<small>天</small>';
+    $('k-risk').innerHTML = `${s.pool.by_status.out||0} / <span style="color:var(--amber)">${s.pool.by_status.low||0}</span>`;
+    $('k-up').innerHTML = Math.floor(h.uptime_seconds/60) + '<small>分</small>';
+    $('clock').textContent = `仿真时钟 ${s.stats.clock_hours}h · 请求 ${s.stats.requests} 次 · 补货事件 ${s.stats.restocks} 次`;
+  }catch(_){ /* 静默：统计失败不影响主流程 */ }
+}
+
+async function loadCats(){
+  try{
+    const d = await fetch('api/categories').then(r=>r.json());
+    $('cat').innerHTML = '<option value="">全部</option>' +
+      d.categories.map(c=>`<option value="${c.key}">${c.key}</option>`).join('');
+  }catch(_){ /* ignore */ }
+}
+
+function setAuto(on){
+  auto = on;
+  $('auto').textContent = on ? '自动刷新 开' : '自动刷新 关';
+  $('auto').classList.toggle('on', on);
+  clearInterval(timer);
+  if (on) timer = setInterval(()=>{ load(); loadStats(); }, 2500);
+}
+
+$('gen').addEventListener('click', ()=>{ load(); loadStats(); });
+$('auto').addEventListener('click', ()=> setAuto(!auto));
+$('mode').addEventListener('change', load);
+$('cat').addEventListener('change', load);
+$('jsonBtn').addEventListener('click', async ()=>{
+  const pre = $('json');
+  const show = pre.style.display !== 'block';
+  pre.style.display = show ? 'block' : 'none';
+  if (show){
+    const d = await fetch('api/products?count=' + ($('count').value||10) + '&mode=' + $('mode').value).then(r=>r.json());
+    pre.textContent = JSON.stringify(d, null, 2);
+  }
+});
+$('reset').addEventListener('click', async ()=>{
+  if (!confirm('确认重置商品池？所有商品的库存与销量将重新生成。')) return;
+  await fetch('api/reset', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+  load(); loadStats();
+});
+
+loadCats();
+load(); loadStats();
+setAuto(true);
+</script>
+</body>
+</html>

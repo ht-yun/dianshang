@@ -1,0 +1,15 @@
+{
+  "name": "mock-product-data-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "电商商品业务仿真数据生成子系统 - 独立进程、零依赖，通过 HTTP 对外输出随机商品数据",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node --no-warnings src/server.js",
+    "dev": "node --no-warnings --watch src/server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

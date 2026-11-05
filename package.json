@@ -1,0 +1,31 @@
+{
+  "name": "smart-inventory-replenishment",
+  "version": "1.0.0",
+  "private": true,
+  "description": "电商智能库存补货系统 - 多平台库存同步 / 价格采集对比 / AI 补货建议 / 供应商采购单 / 可视化看板",
+  "type": "commonjs",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "seed": "node --no-warnings server/seed.js",
+    "reset": "node --no-warnings server/seed.js --force",
+    "mock": "node --no-warnings mock-data-service/src/server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "echarts": "^5.5.1",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.3",
+    "jsqr": "^1.4.0",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.5",
+    "ssh2": "^1.17.0"
+  }
+}
